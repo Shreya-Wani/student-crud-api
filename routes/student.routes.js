@@ -3,10 +3,10 @@ import {createStudent, getAllStudents, getStudentById, updateStudent, deleteStud
 
 const router = Router();
 
-router.post("/students", createStudent);
-router.get("/students", getAllStudents);
-router.get("/students/:id", getStudentById);
-router.put("/students/:id", updateStudent);
-router.delete("/students/:id", deleteStudent);
+router.post("/", createStudent);
+router.get("/", getAllStudents);
+router.get("/:id", getStudentById);
+router.put("/:id", updateStudent);
+router.delete("/:id", deleteStudent);
 
 export default router;
