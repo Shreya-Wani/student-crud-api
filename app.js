@@ -1,7 +1,7 @@
 import express from "express";
 import studentRoutes from "./routes/student.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 import ApiError from "./utils/api-error.js";
-import router from "./routes/student.routes.js";
 
 const app = express();
 
@@ -9,7 +9,8 @@ const app = express();
 app.use(express.json());
 
 /* Routes */
-app.use("/api", studentRoutes);
+app.use("/api/v1/students", studentRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 /* 404 Handler */
 app.use((req, res, next) => {
@@ -22,7 +23,7 @@ app.use((err, req, res, next) => {
 
   res.status(statusCode).json({
     success: false,
-    message: err.message || "Internal Server Error"
+    message: err.message || "Internal Server Error",
   });
 });
 
