@@ -4,30 +4,20 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { User } from "../model/user.model.js";
 
 export const authMiddleware = asyncHandler(async (req, res, next) => {
-    //read access token from cookies
-    const accessToken = req.cookies?.accessToken;
+    console.log("🍪 req.cookies:", req.cookies);
+  const token = req.cookies?.accessToken;
 
-    if (!accessToken) {
-        throw new ApiError(401, "Access token missing");
-    }
+  if (!token) {
+    throw new ApiError(401, "Access token missing");
+  }
 
-    let decoded;
-    try {
-        decoded = jwt.verify(
-            accessToken,
-            process.env.ACCESS_TOKEN_SECRET
-        );
-    } catch (error) {
-        throw new ApiError(401, "Invalid or expired access token");
-    }
+  const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    //find user by id in token
-    const user = await User.findById(decoded._id.toString());
-    if (!user) {
-        throw new ApiError(401, "User not found");
-    }
+  const user = await User.findById(decoded._id);
+  if (!user) {
+    throw new ApiError(401, "User not found");
+  }
 
-    //attach user to request object
-    req.user = user;
-    next();
+  req.user = user;
+  next();
 });

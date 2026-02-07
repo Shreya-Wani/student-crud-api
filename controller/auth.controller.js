@@ -71,7 +71,8 @@ export const loginUser = asyncHandler(async (req, res) => {
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: false,
-        sameSite: "strict",
+        sameSite: "lax",
+        path: "/",
         maxAge: 20 * 60 * 1000
     });
 
@@ -79,7 +80,8 @@ export const loginUser = asyncHandler(async (req, res) => {
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: false,
-        sameSite: "strict",
+        sameSite: "lax",
+        path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -129,5 +131,35 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
       { accessToken: newAccessToken },
       "Access token refreshed"
     )
+  );
+});
+
+export const logoutUser = asyncHandler(async (req, res) => {
+    console.log("🔥 LOGOUT CONTROLLER HIT");
+
+  const userId = req.user._id;
+
+  // remove refresh token from DB
+  await User.findByIdAndUpdate(userId, {
+    refreshToken: null,
+  });
+
+  // clear cookies
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    path: "/",
+  });
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    path: "/",
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, null, "Logged out successfully")
   );
 });
