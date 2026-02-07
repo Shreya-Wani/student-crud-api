@@ -1,31 +1,62 @@
-# Student CRUD API
+Student CRUD API with JWT Authentication
 
-A simple RESTful API built with **Node.js**, **Express.js**, and **MongoDB** to perform basic CRUD operations on student data.  
-It follows a clean modular structure with centralized async error handling and standardized API responses.
+A REST API built using Node.js, Express, and MongoDB that implements JWT-based authentication and protected student CRUD operations.
 
----
+Features
 
-## 🚀 Features
-- Create, Read, Update, Delete students
-- Express-based REST API
-- MongoDB integration using Mongoose
-- Centralized error handling (asyncHandler)
-- Tested using Postman
+User signup and login
 
----
+Password hashing using bcrypt
 
-## 🛠 Tech Stack
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- postman
+JWT authentication with access & refresh tokens
 
----
+Secure refresh token storage in database
 
-## 📌 API Endpoints
-- `POST /api/students` – Create student  
-- `GET /api/students` – Get all students  
-- `GET /api/students/:id` – Get student by ID  
-- `PUT /api/students/:id` – Update student  
-- `DELETE /api/students/:id` – Delete student  
+Protected student APIs using auth middleware
+
+Student CRUD operations
+
+Joi validation and centralized error handling
+
+Tech Stack
+
+Node.js
+
+Express.js
+
+MongoDB (Mongoose)
+
+JWT
+
+bcrypt
+
+Joi
+
+API Endpoints
+Auth
+POST /api/v1/auth/signup
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh-token
+
+Students (Protected)
+POST   /api/v1/students
+GET    /api/v1/students
+GET    /api/v1/students/:id
+PUT    /api/v1/students/:id
+DELETE /api/v1/students/:id
+
+Environment Variables
+PORT=8000
+MONGO_URI=your_mongodb_uri
+ACCESS_TOKEN_SECRET=your_access_secret
+REFRESH_TOKEN_SECRET=your_refresh_secret
+ACCESS_TOKEN_EXPIRY=20m
+REFRESH_TOKEN_EXPIRY=7d
+
+Run Locally
+npm install
+npm run dev
+
+Author
+
+Shreya Wani
