@@ -4,6 +4,9 @@ import { signupValidation, loginValidation } from "../validations/auth.validatio
 import ApiError from "../utils/api-error.js";
 import ApiResponse from "../utils/api-response.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { generateAccessToken, generateRefreshToken } from "../utils/token.util.js";
+import { refreshTokenValidation } from "../validations/auth.validation.js";
+import jwt from "jsonwebtoken";
 
 export const signupUser = asyncHandler(async (req, res) => {
     //joi validation
@@ -56,8 +59,60 @@ export const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid email or password");
     }
 
+    //Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    //Save refresh token in DB
+    user.refreshToken = refreshToken;
+    await user.save();
+
     //Success response
-    return res
-        .status(200)
-        .json(new ApiResponse(200, null, "User logged in successfully"));
-})
+    return res.status(200).json(
+    new ApiResponse(
+      200,{ accessToken, refreshToken },"Login successful"
+    )
+    );
+});
+
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+    
+  // validate request body
+  const { error } = refreshTokenValidation.validate(req.body);
+  if (error) {
+    throw new ApiError(400, error.details[0].message);
+  }
+
+  const { refreshToken } = req.body;
+
+  // verify refresh token
+
+  let decoded;
+  try {
+    decoded = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+  } catch {
+    throw new ApiError(401, "Invalid or expired refresh token");
+  }
+
+  // find user and match refresh token
+  const user = await User.findById(decoded._id.toString());
+  if (!user || user.refreshToken !== refreshToken) {
+    throw new ApiError(401, "Refresh token not recognized");
+  }
+
+  
+  // generate new access token
+  const newAccessToken = generateAccessToken(user);
+
+  // send response
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { accessToken: newAccessToken },
+      "Access token refreshed"
+    )
+  );
+});
