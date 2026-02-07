@@ -67,12 +67,27 @@ export const loginUser = asyncHandler(async (req, res) => {
     user.refreshToken = refreshToken;
     await user.save();
 
+    //set access token in http-only cookie
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 20 * 60 * 1000
+    });
+
+    //set refresh token in http-only cookie
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
     //Success response
     return res.status(200).json(
     new ApiResponse(
-      200,{ accessToken, refreshToken },"Login successful"
-    )
-    );
+      200, null ,"Login successful"
+    ));
 });
 
 export const refreshAccessToken = asyncHandler(async (req, res) => {
