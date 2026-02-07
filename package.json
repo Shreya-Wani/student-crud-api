@@ -1,0 +1,30 @@
+{
+  "name": "student-crud-api",
+  "version": "1.0.0",
+  "description": "Student CRUD REST API built with Node.js, Express.js, and MongoDB using Mongoose. Includes centralized async error handling, custom API responses, and clean modular architecture.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shreya-Wani/student-crud-api.git"
+  },
+  "author": "shreya wani",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Shreya-Wani/student-crud-api/issues"
+  },
+  "homepage": "https://github.com/Shreya-Wani/student-crud-api#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.1.5",
+    "nodemon": "^3.1.11"
+  }
+}
