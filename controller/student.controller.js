@@ -5,9 +5,17 @@ import ApiResponse from "../utils/api-response.js";
 
 /* Create Student */
 export const createStudent = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  // ✅ check duplicate email
+  const existingStudent = await Student.findOne({ email });
+  if (existingStudent) {
+    throw new ApiError(409, "Student with this email already exists");
+  }
+
   const student = await Student.create(req.body);
 
-  res
+  return res
     .status(201)
     .json(new ApiResponse(201, student, "Student created successfully"));
 });
