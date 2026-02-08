@@ -11,6 +11,6 @@ export const hashOTP = (otp) => {
 };
 
 //otp expiry ( 5 min )
-export const otpExpiiryTime = () => {
+export const otpExpiryTime = () => {
     return new Date(Date.now() + 5 * 60 * 1000);
 };

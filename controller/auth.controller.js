@@ -7,6 +7,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.util.js";
 import { refreshTokenValidation } from "../validations/auth.validation.js";
 import jwt from "jsonwebtoken";
+import { generateOTP, hashOTP, otpExpiryTime } from "../utils/otp.util.js";
+import { sendOtpEmail } from "../utils/email.util.js";
 
 export const signupUser = asyncHandler(async (req, res) => {
     //joi validation
@@ -59,37 +61,52 @@ export const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid email or password");
     }
 
-    //Generate tokens
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    //generate OTP
+    const otp = generateOTP();
 
-    //Save refresh token in DB
-    user.refreshToken = refreshToken;
+    //hash OTP and save to DB with expiry
+    user.otp = hashOTP(otp);
+    user.otpExpiry = otpExpiryTime();
     await user.save();
 
-    //set access token in http-only cookie
-    res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 20 * 60 * 1000
-    });
+    //send OTP to email
+    await sendOtpEmail(user.email, otp);
 
-    //set refresh token in http-only cookie
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    return res.status(200).json(
+    new ApiResponse(200, null, "OTP sent to your registered email")
+    );
+
+    // //Generate tokens
+    // const accessToken = generateAccessToken(user);
+    // const refreshToken = generateRefreshToken(user);
+
+    // //Save refresh token in DB
+    // user.refreshToken = refreshToken;
+    // await user.save();
+
+    // //set access token in http-only cookie
+    // res.cookie("accessToken", accessToken, {
+    //     httpOnly: true,
+    //     secure: false,
+    //     sameSite: "lax",
+    //     path: "/",
+    //     maxAge: 20 * 60 * 1000
+    // });
+
+    // //set refresh token in http-only cookie
+    // res.cookie("refreshToken", refreshToken, {
+    //     httpOnly: true,
+    //     secure: false,
+    //     sameSite: "lax",
+    //     path: "/",
+    //     maxAge: 7 * 24 * 60 * 60 * 1000
+    // });
 
     //Success response
-    return res.status(200).json(
-    new ApiResponse(
-      200, null ,"Login successful"
-    ));
+    // return res.status(200).json(
+    // new ApiResponse(
+    //   200, null ,"Login successful"
+    // ));
 });
 
 export const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -135,7 +152,6 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
-    console.log("🔥 LOGOUT CONTROLLER HIT");
 
   const userId = req.user._id;
 

@@ -2,11 +2,13 @@ import express from "express";
 import studentRoutes from "./routes/student.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import ApiError from "./utils/api-error.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 /* Middleware */
 app.use(express.json());
+app.use(cookieParser());
 
 /* Routes */
 app.use("/api/v1/students", studentRoutes);
