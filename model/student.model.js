@@ -19,6 +19,10 @@ const studentSchema = new mongoose.Schema(
     course: {
       type: String,
       required: true
+    },
+    profileImage: {
+      type: String,
+      default: "",
     }
   },
   {

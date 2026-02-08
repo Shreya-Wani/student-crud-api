@@ -2,6 +2,7 @@ import Student from "../model/student.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/api-error.js";
 import ApiResponse from "../utils/api-response.js";
+import { uploadToCloudinary } from "../utils/cloudinaryUpload.js";
 
 /* Create Student */
 export const createStudent = asyncHandler(async (req, res) => {
@@ -13,7 +14,18 @@ export const createStudent = asyncHandler(async (req, res) => {
     throw new ApiError(409, "Student with this email already exists");
   }
 
-  const student = await Student.create(req.body);
+  let profileImage = "";
+
+  // upload image if provided
+  if (req.file) {
+    const uploadedImage = await uploadToCloudinary(req.file.buffer, "students");
+    profileImage = uploadedImage.secure_url;
+  }
+
+  const student = await Student.create({
+    ...req.body,
+    profileImage,
+  });
 
   return res
     .status(201)

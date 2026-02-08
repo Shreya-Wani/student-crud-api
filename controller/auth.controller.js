@@ -111,7 +111,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         secure: false,
         sameSite: "lax",
         path: "/",
-        maxAge: 20 * 60 * 1000, // 20 min
+        maxAge: 10 * 60 * 1000, // 10 min
     })
 
     // send response
