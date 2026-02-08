@@ -79,45 +79,50 @@ export const loginUser = asyncHandler(async (req, res) => {
 
 export const refreshAccessToken = asyncHandler(async (req, res) => {
     
-  // validate request body
-  const { error } = refreshTokenValidation.validate(req.body);
-  if (error) {
-    throw new ApiError(400, error.details[0].message);
-  }
+    // retrieve refresh token from cookie
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        throw new ApiError(401, "Refresh token missing");
+    }
 
-  const { refreshToken } = req.body;
+    // verify refresh token
+    let decoded;
+    try {
+        decoded = jwt.verify(
+            refreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        );
+    } catch (error) {
+        throw new ApiError(401, "Invalid or expired refresh token");
+    }
 
-  // verify refresh token
+    // find user and match refresh token
+    const user = await User.findById(decoded._id);
+    if (!user || user.refreshToken !== refreshToken) {
+        throw new ApiError(401, "Refresh token not recognized");
+    }
 
-  let decoded;
-  try {
-    decoded = jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_SECRET
+    // generate new access token
+    const newAccessToken = generateAccessToken(user);
+
+    // set new access token in http-only cookie
+    res.cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 20 * 60 * 1000, // 20 min
+    })
+
+    // send response
+    return res.status(200).json(
+        new ApiResponse(
+        200,
+        null,
+        "Access token refreshed"
+        )
     );
-  } catch {
-    throw new ApiError(401, "Invalid or expired refresh token");
-  }
-
-  // find user and match refresh token
-  const user = await User.findById(decoded._id.toString());
-  if (!user || user.refreshToken !== refreshToken) {
-    throw new ApiError(401, "Refresh token not recognized");
-  }
-
-  
-  // generate new access token
-  const newAccessToken = generateAccessToken(user);
-
-  // send response
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      { accessToken: newAccessToken },
-      "Access token refreshed"
-    )
-  );
-});
+    });
 
 export const verifyOtp = asyncHandler (async (req, res) => {
     const { email, otp } = req.body;
