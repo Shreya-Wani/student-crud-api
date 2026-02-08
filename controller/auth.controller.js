@@ -75,38 +75,6 @@ export const loginUser = asyncHandler(async (req, res) => {
     return res.status(200).json(
     new ApiResponse(200, null, "OTP sent to your registered email")
     );
-
-    // //Generate tokens
-    // const accessToken = generateAccessToken(user);
-    // const refreshToken = generateRefreshToken(user);
-
-    // //Save refresh token in DB
-    // user.refreshToken = refreshToken;
-    // await user.save();
-
-    // //set access token in http-only cookie
-    // res.cookie("accessToken", accessToken, {
-    //     httpOnly: true,
-    //     secure: false,
-    //     sameSite: "lax",
-    //     path: "/",
-    //     maxAge: 20 * 60 * 1000
-    // });
-
-    // //set refresh token in http-only cookie
-    // res.cookie("refreshToken", refreshToken, {
-    //     httpOnly: true,
-    //     secure: false,
-    //     sameSite: "lax",
-    //     path: "/",
-    //     maxAge: 7 * 24 * 60 * 60 * 1000
-    // });
-
-    //Success response
-    // return res.status(200).json(
-    // new ApiResponse(
-    //   200, null ,"Login successful"
-    // ));
 });
 
 export const refreshAccessToken = asyncHandler(async (req, res) => {
@@ -150,6 +118,66 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     )
   );
 });
+
+export const verifyOtp = asyncHandler (async (req, res) => {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+        throw new ApiError(400, "Email and OTP are required");
+    }
+
+    const user = await User.findOne({ email });
+    if( !user || !user.otp || !user.otpExpiry) {
+        throw new ApiError(400, "OTP verification failed");
+    }
+
+    //check expiry
+    if (user.otpExpiry < new Date()) {
+        throw new ApiError(400, "OTP has expired");
+    }
+
+    //hash otp given by user and compare with DB
+    const hashedOtp = hashOTP(otp);
+    if (hashedOtp !== user.otp) {
+        throw new ApiError(400, "Invalid OTP");
+    }
+
+    //it OTP verified then clear otp in db
+    user.otp = null;
+    user.otpExpiry = null;
+
+    //Generate tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    //Save refresh token in DB
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    //set access token in http-only cookie
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 20 * 60 * 1000,
+    });
+
+    //set refresh token in http-only cookie
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    //Success response
+    return res.status(200).json(
+    new ApiResponse(
+      200, null ,"Login successful"
+    ));
+})
 
 export const logoutUser = asyncHandler(async (req, res) => {
 
